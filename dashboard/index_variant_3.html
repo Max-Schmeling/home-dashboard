@@ -1,0 +1,321 @@
+<!doctype html>
+<html>
+<head>
+
+	<meta charset="UTF-8">
+	<meta name=description content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="refresh" content="1800" />
+	<title>Dashboard</title>
+
+	<style>
+	
+		@font-face{
+			font-family:'digital-clock';
+			src: url('digital-font.ttf');
+		}
+
+		body {
+			background-color: #222;
+			color: #FDD8AE;
+			padding: 0px;
+			margin: 2vh;
+			font-family: Helvetica;
+		}
+		
+		#grid-container {
+			background-color: #222;
+			display: grid;
+			grid-template-columns: repeat(minmax(0, 1fr), 4);
+			grid-template-rows: repeat(minmax(0, 1fr), 7);
+			grid-auto-columns: 1fr;
+			grid-auto-rows: 1fr;
+			grid-auto-flow: column;
+			grid-gap: 2vh;
+			height: 96vh; /* 100vh - 2*2vh body margin */
+		}
+		
+		.grid-item {
+			background-color: #222;
+			border-radius: 4px;
+		}
+		
+		.item1 {
+			grid-column-start: 1;
+			grid-column-end: 1;
+			grid-row-start: 1;
+			grid-row-end: 3;
+		}
+		
+		.item2 {
+			grid-column-start: 2;
+			grid-column-end: 2;
+			grid-row-start: 1;
+			grid-row-end: 3;
+		}
+
+		.item3 {
+			grid-column-start: 3;
+			grid-column-end: 3;
+			grid-row-start: 1;
+			grid-row-end: 3;
+		}
+
+		.item4 {
+			grid-column-start: 4;
+			grid-column-end: 4;
+			grid-row-start: 1;
+			grid-row-end: 3;
+		}
+
+		.item5 {
+			grid-column-start: 1;
+			grid-column-end: 5;
+			grid-row-start: 3;
+			grid-row-end: 8;
+		}
+		
+		#clock {
+			text-align: center;
+			background-color: #222;
+			color: #;
+			height: 100%;
+			padding-top: 2vh;
+		}
+		
+		#time {
+			font-family: digital-clock;
+			font-size: 12vh;
+		}
+		
+		#date {
+			font-family: Courier;
+			font-weight: bold;
+			font-size: 3vh;
+		}
+
+		.weather {
+			background-color: #222;
+			-webkit-box-shadow: 0px 0px 29px -6px rgba(0,0,0,1);
+			-moz-box-shadow: 0px 0px 29px -6px rgba(0,0,0,1);
+			box-shadow: 0px 0px 29px -6px rgba(0,0,0,1);
+			margin: 50px;
+			/*border: 8px solid #FFF;*/
+		}
+
+		#weather-temp > table {
+			table-layout: fixed;
+			width: 100%;
+			height: 100%;
+		}
+
+		#weather-temp-current {
+			text-align: center;
+			font-size: 9vh;
+			width: 60%;
+		}
+
+		#weather-temp-min {
+			font-size: 2vh;
+			width: 40%;
+			vertical-align: top;
+			/*border: 5px solid transparent;*/
+		}
+
+		#weather-temp-max {
+			font-size: 2vh;
+			vertical-align: bottom;
+			/*border: 5px solid transparent;*/
+		}
+
+		
+		iframe {
+			width: 100%;
+			height: 100%;
+			background-color: #222;
+		}
+		
+	</style>
+	
+	</head>
+
+
+	<body onload="loadClock(); InitWeatherUpdate();">
+		<div id="grid-container">
+			<div class="grid-item item1" id="clock">
+				<p><span id="time"></span><br><span id="date"></span></p>
+			</div>
+			<div class="grid-item item2 weather" id="weather-temp">
+				<table class="t1">
+					<tbody>
+						<tr>
+							<td class="t1e" id="weather-temp-current" rowspan="2"></td>
+							<td class="t1e" ><img src="https://img.icons8.com/color/96/000000/double-up.png" style="width: 2vh;"/><span id="weather-temp-max" style="padding-left: 10px;"></span></td>
+						</tr>
+						<tr>
+							<td class="t1e" ><img src="https://img.icons8.com/color/96/000000/double-down.png" style="width: 2vh;"/><span id="weather-temp-min" style="padding-left: 10px;" ></span></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="grid-item item3 weather" id="weather-prec"></div>
+			<div class="grid-item item4 weather" id="weather-warning"></div>
+			<div class="grid-item item5" id="map"></div>
+		</div>
+	
+	
+		
+	<script async>
+	
+		// Digital Clock
+		function loadClock() {
+			var today = new Date();
+			var h = today.getHours();
+			var m = today.getMinutes();
+			var s = today.getSeconds();
+			h = padZero(h);
+			m = padZero(m);
+			s = padZero(s);
+			document.getElementById('time').innerHTML =
+				h + ":" + m + ":" + s
+			document.getElementById('date').innerHTML = 
+				getDayName(today.getUTCDay()) + "   " + padZero(today.getDate()) + "." + padZero(today.getMonth()) + "." + today.getFullYear() ;
+			var t = setTimeout(loadClock, 500);
+		}
+		
+		function padZero(i) {
+			if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+			return i;
+		}
+		
+		function getDayName(index) {
+			var weekday=new Array(7);
+			weekday[0]="Sonntag";
+			weekday[1]="Montag";
+			weekday[2]="Dienstag";
+			weekday[3]="Mittwoch";
+			weekday[4]="Donnerstag";
+			weekday[5]="Freitag";
+			weekday[6]="Samstag";
+			return weekday[index];
+		}
+
+		function ISO8601_week_no(dt) {
+			// source: https://www.w3resource.com/javascript-exercises/javascript-date-exercise-24.php
+			var tdt = new Date(dt.valueOf());
+			var dayn = (dt.getDay() + 6) % 7;
+			tdt.setDate(tdt.getDate() - dayn + 3);
+			var firstThursday = tdt.valueOf();
+			tdt.setMonth(0, 1);
+			if (tdt.getDay() !== 4) 
+			{
+			tdt.setMonth(0, 1 + ((4 - tdt.getDay()) + 7) % 7);
+			}
+			return 1 + Math.ceil((firstThursday - tdt) / 604800000);
+		}
+
+
+
+		// Weather
+		function InitWeatherUpdate() {
+
+			// API: OpenWeatherMap
+			apikey_openweathermap = "YOUR_API_KEY"
+			url = "https://api.openweathermap.org/data/2.5/onecall?lon=13.404954&lat=52.52000&appid=" + apikey_openweathermap + "&units=metric&lang=de&exclude=minutely"
+
+			// API: AccuWeather (https://developer.accuweather.com/accuweather-forecast-api/apis/get/forecasts/v1/hourly/12hour/%7BlocationKey%7D)
+			apikey_accuweather = "YOUR_API_KEY"
+			url2 = "https://dataservice.accuweather.com/forecasts/v1/hourly/12hour/LOCATION_KEY?apikey=" + apikey_accuweather + "&language=de-de&metric=true";
+			GetWeatherData(url);
+		}
+
+		function GetWeatherData (url) {
+			var xmlhttp = new XMLHttpRequest();			
+			xmlhttp.onreadystatechange = function() {
+				//console.log(this.readyState + ", " + this.status);
+			   	if (this.readyState == 4 && this.status == 200) {
+			        var respArr = JSON.parse(this.responseText);
+			        UpdateWeatherWidget(respArr);
+			    }
+			};
+			xmlhttp.open("GET", url, true);
+			xmlhttp.send();
+		};
+
+		function UpdateWeatherWidget(arr) {
+			var temp_current = document.getElementById("weather-temp-current");
+			temp_current.innerHTML = Math.floor(arr["current"]["temp"]) + "°";
+
+
+			var min_temp = [arr["current"]["temp"], ""]; // [min_temp, time of min_temp]
+			var max_temp = [arr["current"]["temp"], ""]; // [max_temp, time of max_temp]
+
+
+			for (hour of arr["hourly"]) {
+				var date = new Date(hour["dt"]);
+				if (hour["temp"] < min_temp[0]) {
+					min_temp[0] = hour["temp"];
+					min_temp[1] = date.getHours() + ":" + padZero(date.getMinutes());
+				}
+				if (hour["temp"] > max_temp[0]) { 
+					max_temp[0] = hour["temp"];
+					max_temp[1] = date.getHours() + ":" + padZero(date.getMinutes());
+				}
+			}
+
+			var temp_min = document.getElementById("weather-temp-min");
+			temp_min.innerHTML = Math.floor(min_temp[0]) + "°C"; //+ " ab " + min_temp[1];
+			var temp_max = document.getElementById("weather-temp-max");
+			temp_max.innerHTML = Math.floor(max_temp[0]) + "°C"; // + " ab " + max_temp[1];
+
+			// Regen check
+			// desc.innerHTML = desc.innerHTML + '<img src="./img/icons8-regen-100.png" />     ';
+
+			// var propability = 0;
+			// var flag = false;
+			// for (hour of arr["hourly"]) {
+			// 	if (hour["pop"] >= 10) {
+			// 		var date = new Date(hour["dt"]);
+			// 		desc.innerHTML = desc.innerHTML + "Regen eventuell ab " + date.getHours() + ":" + padZero(date.getMinutes()) + " Uhr erwartet";
+			// 		flag = true;
+			// 		break;
+			// 	} else if (hour["pop"] >= 40) {
+			// 		var date = new Date(hour["dt"]);
+			// 		desc.innerHTML = desc.innerHTML + "Regen ab " + date.getHours() + ":" + padZero(date.getMinutes()) + " Uhr erwartet";
+			// 		flag = true;
+			// 		break;
+			// 	}
+			// }
+			// if (!flag) {
+			// 	desc.innerHTML = desc.innerHTML + "Kein Regen erwartet";
+			// }
+
+			
+		}
+
+		
+		// Google Map
+		function initMap() {
+		  var map = new google.maps.Map(document.getElementById('map'), {
+		    // Documentation for below options: https://developers.google.com/maps/documentation/javascript/reference/map#MapOptions.disableDefaultUI
+			zoom: 13,
+		    center: { lat: 52.52000, lng: 13.404954 }, // Berlin, Germany
+			mapTypeId: "roadmap",
+			disableDefaultUI: true,
+			minZoom: 12,
+			maxZoom: 16,
+			tilt: 0
+		  });
+		
+		  var trafficLayer = new google.maps.TrafficLayer();
+		  trafficLayer.setMap(map);
+		}
+	</script>
+	
+    <script defer
+    	src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap">
+    </script>
+		
+	</body>
+
+</html>

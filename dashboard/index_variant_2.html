@@ -1,0 +1,304 @@
+<!doctype html>
+<html>
+<head>
+
+	<meta charset="UTF-8">
+	<meta name=description content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="refresh" content="1800" />
+	<title>Dashboard</title>
+
+	<style>
+	
+		@font-face{
+			font-family:'digital-clock';
+			src: url('digital-font.ttf');
+		}
+
+		body {
+			background-color: #c9cace;
+			padding: 0px;
+			margin: 2vh;
+			font-family: Helvetica;
+		}
+		
+		#grid-container {
+			background-color: #c9cace;
+			display: grid;
+			grid-template-columns: repeat(minmax(0, 1fr), 4);
+			grid-template-rows: repeat(minmax(0, 1fr), 7);
+			grid-auto-columns: 1fr;
+			grid-auto-rows: 1fr;
+			grid-auto-flow: column;
+			grid-gap: 2vh;
+			height: 96vh; // 100vh - 2*1vh body margin
+		}
+		
+		.grid-item {
+			background-color: #e9e9e9;
+			border-radius: 4px;
+		}
+		
+		.item1 {
+			grid-column-start: 1;
+			grid-column-end: 1;
+			grid-row-start: 1;
+			grid-row-end: 2;
+		}
+		
+		.item2 {
+			grid-column-start: 2;
+			grid-column-end: 5;
+			grid-row-start: 1;
+			grid-row-end: 2;
+		}
+	
+		.item4 {
+			grid-column-start: 1;
+			grid-column-end: 5;
+			grid-row-start: 2;
+			grid-row-end: 8;
+		}
+		
+		#clock {
+			text-align: center;
+			color: #282c37;
+			height: 100%;
+		}
+		
+		#time {
+			font-family: digital-clock;
+			font-size: 75pt;
+			font-style: bold;
+		}
+		
+		#date {
+			font-family: Courier;
+			font-weight: bold;
+			font-size: 14pt;
+			color: #282c37;
+		}
+
+		#weather-current {
+			color: #333;
+		}
+
+		#weather-current > table {
+			height: 100%;
+			width: 100%;
+			text-align: center;
+		}
+
+		#weather-details {
+			background: #FFF;
+		}
+		
+		iframe {
+			width: 100%;
+			height: 100%;
+		}
+		
+	</style>
+	
+	</head>
+
+
+	<body onload="loadClock(); ">
+		<div id="grid-container">
+			<div class="grid-item item1" id="clock">
+				<p><span id="time"></span><br><span id="date"></span></p>
+			</div>
+			<div class="grid-item item2" id="weather-current">
+				<table>
+					<tr>
+						<td class="weather-time" id="wt1">Jetzt</td>
+						<td class="weather-time" id="wt2">Hour 2</td>
+						<td class="weather-time" id="wt3">Hour 3</td>
+						<td class="weather-time" id="wt4">Hour 4</td>
+					</tr>
+				</table>
+			</div>
+			<div class="grid-item item4" id="map"></div>
+			
+		</div>
+	
+	
+		
+	<script async>
+	
+		// Digital Clock
+		function loadClock() {
+			var today = new Date();
+			var h = today.getHours();
+			var m = today.getMinutes();
+			var s = today.getSeconds();
+			h = padZero(h);
+			m = padZero(m);
+			s = padZero(s);
+			document.getElementById('time').innerHTML =
+				h + ":" + m + ":" + s
+			document.getElementById('date').innerHTML = 
+				getDayName(today.getUTCDay()) + "   " + padZero(today.getDate()) + "." + padZero(today.getMonth()) + "." + today.getFullYear() + " <br>Kalenderwoche " + padZero(ISO8601_week_no(today));
+			var t = setTimeout(loadClock, 500);
+		}
+		
+		function padZero(i) {
+			if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+			return i;
+		}
+		
+		function getDayName(index) {
+			var weekday=new Array(7);
+			weekday[0]="Sonntag";
+			weekday[1]="Montag";
+			weekday[2]="Dienstag";
+			weekday[3]="Mittwoch";
+			weekday[4]="Donnerstag";
+			weekday[5]="Freitag";
+			weekday[6]="Samstag";
+			return weekday[index];
+		}
+
+		function ISO8601_week_no(dt) {
+			// source: https://www.w3resource.com/javascript-exercises/javascript-date-exercise-24.php
+			var tdt = new Date(dt.valueOf());
+			var dayn = (dt.getDay() + 6) % 7;
+			tdt.setDate(tdt.getDate() - dayn + 3);
+			var firstThursday = tdt.valueOf();
+			tdt.setMonth(0, 1);
+			if (tdt.getDay() !== 4) 
+			{
+			tdt.setMonth(0, 1 + ((4 - tdt.getDay()) + 7) % 7);
+			}
+			return 1 + Math.ceil((firstThursday - tdt) / 604800000);
+		}
+
+
+
+		// Weather
+		function InitWeatherUpdate() {
+
+			// API: OpenWeatherMap
+			apikey_openweathermap = "YOUR_API_KEY"
+			url = "https://api.openweathermap.org/data/2.5/onecall?lon=13.404954&lat=52.52000&appid=" + apikey_openweathermap + "&units=metric&lang=de&exclude=minutely"
+
+			// API: AccuWeather (https://developer.accuweather.com/accuweather-forecast-api/apis/get/forecasts/v1/hourly/12hour/%7BlocationKey%7D)
+			apikey_accuweather = "YOUR_API_KEY"
+			url2 = "https://dataservice.accuweather.com/forecasts/v1/hourly/12hour/LOCATION_KEY?apikey=" + apikey_accuweather + "&language=de-de&metric=true";
+			GetWeatherData(url);
+		}
+
+		function GetWeatherData (url) {
+			var xmlhttp = new XMLHttpRequest();			
+			xmlhttp.onreadystatechange = function() {
+				//console.log(this.readyState + ", " + this.status);
+			   	if (this.readyState == 4 && this.status == 200) {
+			        var respArr = JSON.parse(this.responseText);
+			        UpdateWeatherWidget(respArr);
+			    }
+			};
+			xmlhttp.open("GET", url, true);
+			xmlhttp.send();	
+		};
+
+		function UpdateWeatherWidget(arr) {
+			var temp = document.getElementById("weather-temp");
+			temp.innerHTML = Math.floor(arr["current"]["temp"]) + "°";
+
+			// // Gradient blue to orange
+			// switch (true) {
+			// 	case (arr["current"]["temp"] < 0): temp.style.color = "#0164c9"; break;
+			// 	case (arr["current"]["temp"] < 10): temp.style.color = "#29679a"; break;
+			// 	case (arr["current"]["temp"] < 20): temp.style.color = "#6f2852"; break;
+			// 	case (arr["current"]["temp"] < 25): temp.style.color = "#ff451c"; break;
+			// 	case (arr["current"]["temp"] < 30): temp.style.color = "#f91a1f"; break;
+			// 	default: temp.style.color = "#ec0027";
+			// }
+
+			// Gradient blue to red
+			/*
+			switch (true) {
+				case (arr["current"]["temp"] < 0): temp.style.color = "#1034A6"; break;
+				case (arr["current"]["temp"] < 10): temp.style.color = "#412f88"; break;
+				case (arr["current"]["temp"] < 20): temp.style.color = "#722b6a"; break;
+				case (arr["current"]["temp"] < 25): temp.style.color = "#a2264b"; break;
+				case (arr["current"]["temp"] < 30): temp.style.color = "#d3212d"; break;
+				default: temp.style.color = "#d3212d";
+			}
+			*/
+
+			var desc = document.getElementById("weather-desc");
+			desc.innerHTML = arr["current"]["weather"][0]["description"];
+
+			// Weather detail widget
+			//var details = document.getElementById("weather-details");
+			//details.style.background = temp.style.color;
+
+
+			/* pull weather image
+			baseurl = "http://openweathermap.org/img/wn/";
+			var imgdiv = document.getElementById("weather-icon");
+			var img = document.createElement("img");
+			img.src = baseurl + arr["current"]["weather"][0]["icon"] + ".png";
+			imgdiv.appendChild(img);
+			*/
+
+			/*
+			var desc = document.getElementById("weather-desc");
+			desc.innerHTML = Math.floor(arr["current"]["temp"]) + " °C";
+			desc.innerHTML = desc.innerHTML + "<br>" + arr["current"]["weather"][0]["description"];
+			desc.innerHTML = desc.innerHTML + "<br>" + arr["current"]["humidity"] + " % Luftfeuchtigkeit";
+			desc.innerHTML = desc.innerHTML + "<br>" + Math.floor(arr["current"]["wind_speed"]*3.6) + " km/h Wind";
+
+			// Sonnenuntergang
+			var date = new Date(arr["current"]["sunset"] * 1000);
+			desc.innerHTML = desc.innerHTML + "<br>" + "Sonnenuntergang um " + date.getHours() + ":" + date.getMinutes() + " Uhr";
+
+			// Regen check
+			var propability = 0;
+			var flag = false;
+			for (hour of arr["hourly"]) {
+				if (hour["pop"] >= 10) {
+					var date = new Date(hour["dt"]);
+					desc.innerHTML = desc.innerHTML + "<br>" + "Regen eventuell ab " + date.getHours() + ":" + date.getMinutes() + " Uhr erwartet";
+					flag = true;
+					break;
+				} else if (hour["pop"] >= 51) {
+					var date = new Date(hour["dt"]);
+					desc.innerHTML = desc.innerHTML + "<br>" + "Regen ab " + date.getHours() + ":" + date.getMinutes() + " Uhr erwartet";
+					flag = true;
+					break;
+				}
+			}
+			if (!flag) {
+				desc.innerHTML = desc.innerHTML + "<br>" + "Kein Regen erwartet";
+			}
+			*/
+		}
+
+		
+		// Google Map
+		function initMap() {
+		  var map = new google.maps.Map(document.getElementById('map'), {
+		    // Documentation for below options: https://developers.google.com/maps/documentation/javascript/reference/map#MapOptions.disableDefaultUI
+			zoom: 12,
+		    center: { lat: 52.52000, lng: 13.404954 }, // Berlin, Germany
+			mapTypeId: "roadmap",
+			disableDefaultUI: true,
+			minZoom: 12,
+			maxZoom: 16,
+			tilt: 0,
+		  });
+		
+		  var trafficLayer = new google.maps.TrafficLayer();
+		  trafficLayer.setMap(map);
+		}
+	</script>
+	
+    <script defer
+    	src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap">
+    </script>
+		
+	</body>
+
+</html>
